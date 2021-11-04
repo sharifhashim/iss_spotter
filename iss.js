@@ -26,4 +26,25 @@ const fetchMyIP = function(callback) {
   });
 };
 
-module.exports = { fetchMyIP };
+const fetchCoordsByIP = function(ip, callback) {
+  request(`https://api.freegeoip.app/json/?apikey=c821fd20-3dc1-11ec-938b-3b99643c4b64`, (error, response, body) => {
+    if (error) {
+      callback(error, null);
+    }
+    if (response.statusCode !== 200) {
+      const msg = `Status Code ${response.statusCode} when fetching coordinates. Response: ${body}`;
+      callback(Error(msg), null);
+      return;
+    }
+    const {latitude, longitude} = JSON.parse(body);
+
+    // const obj = {
+    //   latitude: data.latitude,
+    //   longitude: data.longitude
+    // };
+  
+    callback(null, {latitude, longitude});
+  });
+};
+
+module.exports = { fetchMyIP, fetchCoordsByIP };
