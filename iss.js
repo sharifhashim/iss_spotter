@@ -6,7 +6,9 @@
  *   - An error, if any (nullable)
  *   - The IP address as a string (null if error). Example: "162.245.144.188"
  */
+const { error } = require('console');
 const request = require('request');
+const fetchBreedDescription = require('../json_the_cat/breedFetcher');
 
 const fetchMyIP = function(callback) {
 
@@ -20,7 +22,7 @@ const fetchMyIP = function(callback) {
       callback(Error(msg), null);
       return;
     }
-    const data = JSON.parse(body).ip;
+    const data = JSON.parse(body);
     callback(null, data);
 
   });
@@ -43,7 +45,7 @@ const fetchCoordsByIP = function(ip, callback) {
     //   longitude: data.longitude
     // };
   
-    callback(null, {latitude, longitude});
+    callback(null, { latitude, longitude });
   });
 };
 
@@ -57,10 +59,29 @@ const fetchISSFlyOverTimes = function (coords, callback) {
       callback(Error(`Status Code ${response.statusCode} when fetching ISS pass times: ${body}`), null);
       return;
     }
-    
+
     const passes = JSON.parse(body).response;
     callback(null, passes);
   })
 }
-module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes };
+
+const nextISSTimesForMyLocation = function (callback) {
+  fetchMyIP((error, ip) => {
+    if (error) {
+      return callback(error, null)
+    }
+    fetchCoordsByIP(ip, (error, location) => {
+      if (error) {
+        return callback(error, null)
+      }
+      fetchISSFlyOverTimes(location, (error, nextPasses) => {
+        if (error) {
+          return callback(error, null)
+        }
+        callback(null, nextPasses)
+      })
+    })
+  })
+}
+module.exports = { fetchMyIP, fetchCoordsByIP, fetchISSFlyOverTimes, nextISSTimesForMyLocation };
 
